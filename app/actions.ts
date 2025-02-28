@@ -1,15 +1,15 @@
 "use server"
 
-import { GoogleGenerativeAI } from "@google/generative-ai"
 import { searchFlights } from "./api/travel-api"
+import { CohereClient } from "cohere-ai"
 
 // Ensure the API key is available
-const apiKey = process.env.GEMINI_API_KEY
+const apiKey = process.env.COHERE_API_KEY
 if (!apiKey) {
-  throw new Error("GEMINI_API_KEY is not set in the environment variables")
+  throw new Error("COHERE_API_KEY is not set in the environment variables")
 }
 
-const genAI = new GoogleGenerativeAI(apiKey)
+const cohere = new CohereClient({ token: apiKey })
 
 export async function planTrip({
   departure,
@@ -60,8 +60,6 @@ export async function planTrip({
         <p class=\"text-yellow-700\">Unable to fetch real-time flight information. Please check airline websites directly for current flights and prices.</p>
       </div>`
     }
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
-
     const prompt = `I want to go from ${departure} to ${destination} between ${startDate} and ${endDate},
 And while I'm there I'd love to ${activities}
 
@@ -114,9 +112,14 @@ Use appropriate HTML tags and Tailwind CSS classes for:
 - Prices and numbers (span with specific styling)
 `
 
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text()
+    const response = await cohere.generate({
+      model: "command",
+      prompt: prompt,
+      max_tokens: 2000,
+      temperature: 0.7,
+    })
+
+    const text = response.generations[0].text
 
     return text
   } catch (error) {

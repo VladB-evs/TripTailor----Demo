@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative flex h-[50vh] w-full items-center justify-center overflow-hidden bg-gradient-to-b from-green-500/40 to-transparent">
+      <section className="relative flex h-[50vh] w-full items-center justify-center overflow-hidden bg-gradient-to-b from-green-500/40 via-green-500/20 to-white">
         <div className="text-center px-4">
           <h1 className="hero-animate mb-6 text-4xl font-semibold tracking-tight text-black sm:text-5xl md:text-6xl">
             <span className="block">Your next adventure</span>
@@ -22,7 +22,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 py-24">
         <div className="mb-16 text-center">
           <h2 className="mb-4 text-4xl font-medium">Plan Your Trip</h2>
-          <p className="text-xl text-gray-600">Powered by Google Gemini AI for personalized recommendations</p>
+          <p className="text-xl text-gray-600">Powered by Cohere AI for personalized recommendations</p>
         </div>
         <PlanTripForm />
       </section>

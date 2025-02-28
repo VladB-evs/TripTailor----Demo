@@ -80,7 +80,6 @@ const FlightSearch = () => {
     
     const clientId = process.env.REACT_APP_AMADEUS_CLIENT_ID;
     const clientSecret = process.env.REACT_APP_AMADEUS_CLIENT_SECRET;
-    const geminiApiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
     // Calculate number of days
     const departureDate = new Date(date);
@@ -113,37 +112,40 @@ const FlightSearch = () => {
       setFlights(data.data || []);
       setFlightLoading(false);
       
-      // Fetch itinerary from Gemini API with day-by-day structure
-      const itineraryResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", {
+      // Fetch itinerary from Cohere API
+      const cohereApiKey = process.env.REACT_APP_COHERE_API_KEY;
+      const itineraryResponse = await fetch("https://api.cohere.ai/v1/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": geminiApiKey
+          "Authorization": `Bearer ${cohereApiKey}`
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Create a detailed ${tripDuration}-day travel itinerary for a trip to ${destination}${preferences ? ` focusing on ${preferences}` : ''}. For each day, structure the response as follows:
+          model: "command",
+          prompt: `Create a detailed ${tripDuration}-day travel itinerary for a trip to ${destination}${preferences ? ` focusing on ${preferences}` : ''}. For each day, structure the response as follows:
 
 ${Array.from({ length: tripDuration }, (_, i) => `Day ${i + 1}:
 Morning:
-natural language response with highlighted in bold (ex. Food Market is bold)
+- Activities and places to visit with important locations in bold
 
 Afternoon:
-natural language response with highlighted in bold (ex. Food Market is bold)
+- Activities and places to visit with important locations in bold
 
 Evening:
-natural language response with highlighted in bold (ex. Food Market is bold)
+- Activities and places to visit with important locations in bold
 `).join('\n')}
 
-Include popular attractions, recommended restaurants, and local and transportation tips. Use plain text with dashes (-) for bullet points.`
-            }]
-          }]
+Include popular attractions, recommended restaurants, and local transportation tips. Format important locations and places in bold using **location name** syntax.`,
+          max_tokens: 2000,
+          temperature: 0.7,
+          k: 0,
+          stop_sequences: [],
+          return_likelihoods: "NONE"
         })
       });
       
       const itineraryData = await itineraryResponse.json();
-      const generatedText = itineraryData.candidates?.[0]?.content?.parts?.[0]?.text || "No itinerary available.";
+      const generatedText = itineraryData.generations?.[0]?.text || "No itinerary available.";
       setItinerary(generatedText);
     } catch (error) {
       console.error("Error fetching flights or itinerary:", error);
